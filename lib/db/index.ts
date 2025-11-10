@@ -1,8 +1,6 @@
 
 // /lib/db/index.ts:
 
-// /lib/db/index.ts
-
 import { neon } from '@neondatabase/serverless';
 
 // Check if DATABASE_URL exists

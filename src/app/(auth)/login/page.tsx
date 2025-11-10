@@ -1,7 +1,9 @@
 
 // /src/app/(auth)/login/page.tsx
 
+
 import LoginForm from '@/components/auth/login-form';
+import Link from 'next/link';
 
 export default function LoginPage() {
   return (
@@ -22,6 +24,16 @@ export default function LoginPage() {
           </p>
         </div>
         <LoginForm />
+        
+        {/* Forgot Password Link Added Here */}
+        <div className="text-center mt-4">
+          <Link 
+            href="/forgot-password" 
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        </div>
       </div>
     </div>
   );
