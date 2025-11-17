@@ -78,8 +78,6 @@
 
 
 
-
-
 // /src/components/courses/course-grid.tsx
 
 'use client';
@@ -96,7 +94,8 @@ import {
   Sparkles, 
   Zap,
   BookOpen,
-  Target
+  Target,
+  List
 } from 'lucide-react';
 import { Course } from '@/types/courses';
 
@@ -368,41 +367,61 @@ function CourseCard({
 
           {/* Action Buttons */}
           {showActions ? (
-            <div className="flex space-x-2">
-              {!course.is_published ? (
-                <Button
-                  size="sm"
-                  onClick={() => onPublish?.(course)}
-                  className="rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 border-0 px-4 font-semibold"
-                >
-                  Publish
-                </Button>
-              ) : (
+            <div className="flex flex-col gap-2 w-full max-w-[200px]">
+              {/* Top Row - Primary Actions */}
+              <div className="flex flex-wrap gap-2">
+                {/* Curriculum Button */}
+                <Link href={`/dashboard/instructor/courses/${course.id}/curriculum`} className="flex-1 min-w-[100px]">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full rounded-2xl border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 font-semibold"
+                  >
+                    <List className="h-3 w-3 mr-1" />
+                    Curriculum
+                  </Button>
+                </Link>
+                
+                {/* Publish/Unpublish Button */}
+                {!course.is_published ? (
+                  <Button
+                    size="sm"
+                    onClick={() => onPublish?.(course)}
+                    className="flex-1 min-w-[80px] rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg border-0 font-semibold"
+                  >
+                    Publish
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onUnpublish?.(course)}
+                    className="flex-1 min-w-[80px] rounded-2xl border-gray-300 hover:bg-gray-50"
+                  >
+                    Unpublish
+                  </Button>
+                )}
+              </div>
+
+              {/* Bottom Row - Secondary Actions */}
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onUnpublish?.(course)}
-                  className="rounded-2xl border-gray-300 hover:bg-gray-50"
+                  onClick={() => onEdit?.(course)}
+                  className="flex-1 min-w-[70px] rounded-2xl border-gray-300 hover:bg-gray-50"
                 >
-                  Unpublish
+                  Edit
                 </Button>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onEdit?.(course)}
-                className="rounded-2xl border-gray-300 hover:bg-gray-50"
-              >
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => onDelete?.(course)}
-                className="rounded-2xl bg-red-500 hover:bg-red-600 text-white border-0"
-              >
-                Delete
-              </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => onDelete?.(course)}
+                  className="flex-1 min-w-[70px] rounded-2xl bg-red-500 hover:bg-red-600 text-white border-0"
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
           ) : (
             <Link href={course.is_published ? `/courses/${course.slug}` : '#'}>

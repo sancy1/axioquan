@@ -80,7 +80,7 @@ export default async function DashboardLayout({
                 Profile
               </a>
               <a 
-                href="/dashboard/courses" 
+                href="/courses" 
                 className="block py-2 px-4 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 Courses

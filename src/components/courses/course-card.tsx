@@ -265,7 +265,6 @@
 
 
 
-
 // /src/components/courses/course-card.tsx
 
 'use client';
@@ -275,6 +274,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Course, CourseTag } from '@/types/courses';
+import { List } from 'lucide-react';
 
 interface CourseCardProps {
   course: Course;
@@ -452,71 +452,94 @@ export function CourseCard({
       </CardContent>
 
       <CardFooter className="pt-0">
-        <div className="w-full flex justify-between items-center">
+        <div className="w-full">
           {showInstructor && (
-  <div className="flex items-center space-x-2">
-    {/* Instructor Image */}
-    {course.instructor_image ? (
-      <img 
-        src={course.instructor_image} 
-        alt={course.instructor_name || 'Instructor'}
-        className="w-8 h-8 rounded-full object-cover border border-gray-200"
-      />
-    ) : (
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-        {course.instructor_name?.charAt(0).toUpperCase() || 'I'}
-      </div>
-    )}
+            <div className="flex items-center space-x-2 mb-3">
+              {/* Instructor Image */}
+              {course.instructor_image ? (
+                <img 
+                  src={course.instructor_image} 
+                  alt={course.instructor_name || 'Instructor'}
+                  className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                  {course.instructor_name?.charAt(0).toUpperCase() || 'I'}
+                </div>
+              )}
 
-    {/* Name */}
-    <div className="text-sm text-gray-700">
-      By <span className="font-medium">{course.instructor_name}</span>
-    </div>
-  </div>
-)}
-
+              {/* Name */}
+              <div className="text-sm text-gray-700">
+                By <span className="font-medium">{course.instructor_name}</span>
+              </div>
+            </div>
+          )}
 
           {showActions ? (
-            <div className="flex space-x-2">
-              {!course.is_published ? (
-                <Button
-                  size="sm"
-                  onClick={() => onPublish?.(course)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Publish
-                </Button>
-              ) : (
+            <div className="flex flex-col gap-2">
+              {/* Top Row - Primary Actions */}
+              <div className="flex flex-wrap gap-2 justify-between">
+                {/* Curriculum Button */}
+                <Link href={`/dashboard/instructor/courses/${course.id}/curriculum`}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 flex-1 min-w-[120px]"
+                  >
+                    <List className="h-3 w-3 mr-1" />
+                    Curriculum
+                  </Button>
+                </Link>
+                
+                {/* Publish/Unpublish Button */}
+                {!course.is_published ? (
+                  <Button
+                    size="sm"
+                    onClick={() => onPublish?.(course)}
+                    className="bg-green-600 hover:bg-green-700 flex-1 min-w-[100px]"
+                  >
+                    Publish
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onUnpublish?.(course)}
+                    className="flex-1 min-w-[100px]"
+                  >
+                    Unpublish
+                  </Button>
+                )}
+              </div>
+
+              {/* Bottom Row - Secondary Actions */}
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onUnpublish?.(course)}
+                  onClick={() => onEdit?.(course)}
+                  className="flex-1 min-w-[80px]"
                 >
-                  Unpublish
+                  Edit
                 </Button>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onEdit?.(course)}
-              >
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => onDelete?.(course)}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Delete
-              </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => onDelete?.(course)}
+                  className="flex-1 min-w-[80px] bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
           ) : (
-            <Link href={course.is_published ? `/courses/${course.slug}` : '#'}>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                {course.is_published ? 'View Course' : 'Preview'}
-              </Button>
-            </Link>
+            <div className="flex justify-end">
+              <Link href={course.is_published ? `/courses/${course.slug}` : '#'}>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  {course.is_published ? 'View Course' : 'Preview'}
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
       </CardFooter>
