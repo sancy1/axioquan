@@ -1,10 +1,11 @@
-
 // /app/categories/[slug]/page.tsx
 
 import { getCategoryBySlugAction } from '@/lib/categories/actions';
 import { getCoursesAction } from '@/lib/courses/actions';
 import { getTagsAction } from '@/lib/tags/actions';
 import { CategoryCoursesClient } from '@/components/categories/category-courses-client';
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
 import { notFound } from 'next/navigation';
 
 interface CategoryPageProps {
@@ -47,11 +48,15 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const availableTags = tagsResult.tags || [];
 
   return (
-    <CategoryCoursesClient 
-      category={category}
-      initialCourses={initialCourses}
-      availableTags={availableTags}
-      searchParams={resolvedSearchParams}
-    />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <CategoryCoursesClient 
+        category={category}
+        initialCourses={initialCourses}
+        availableTags={availableTags}
+        searchParams={resolvedSearchParams}
+      />
+      <Footer />
+    </div>
   );
 }
