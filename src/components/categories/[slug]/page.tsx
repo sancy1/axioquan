@@ -1,4 +1,3 @@
-
 // /app/categories/[slug]/page.tsx
 
 import { getCategoryBySlugAction } from '@/lib/categories/actions';
