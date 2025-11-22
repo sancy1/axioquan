@@ -1,4 +1,3 @@
-// /app/categories/page.tsx
 
 // /app/categories/page.tsx
 

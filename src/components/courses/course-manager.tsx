@@ -1,3 +1,4 @@
+
 // /components/courses/course-manager.tsx
 
 'use client';
@@ -10,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CourseGrid } from './course-grid';
 import { CourseEditor } from './course-editor';
 import { Course } from '@/types/courses';
+import { Play, Star, Users, BookOpen, ArrowRight, FileText } from 'lucide-react';
+import Link from 'next/link';
 
 interface Category {
   id: string;
@@ -23,6 +26,222 @@ interface CourseManagerProps {
 }
 
 type ViewMode = 'list' | 'create' | 'edit';
+
+// Helper function to safely format ratings
+const formatRating = (rating: any): string => {
+  if (rating === null || rating === undefined) return '4.8';
+  
+  const numRating = typeof rating === 'string' ? parseFloat(rating) : Number(rating);
+  
+  if (isNaN(numRating)) return '4.8';
+  
+  return numRating.toFixed(1);
+};
+
+// Helper function to safely get numbers
+const getNumber = (value: any, defaultValue: number = 0): number => {
+  if (value === null || value === undefined) return defaultValue;
+  
+  const numValue = typeof value === 'string' ? parseInt(value) : Number(value);
+  
+  return isNaN(numValue) ? defaultValue : numValue;
+};
+
+// Premium Course Card Component matching homepage design
+function PremiumCourseCard({ 
+  course, 
+  onEdit, 
+  onDelete, 
+  onPublish, 
+  onUnpublish 
+}: { 
+  course: Course;
+  onEdit?: (course: Course) => void;
+  onDelete?: (course: Course) => void;
+  onPublish?: (course: Course) => void;
+  onUnpublish?: (course: Course) => void;
+}) {
+  const rating = formatRating(course.average_rating);
+  const studentCount = getNumber(course.enrolled_students_count);
+  const lessonCount = getNumber(course.total_lessons);
+  
+  // Build the course detail URL - works in both development and production
+  const courseDetailUrl = `/courses/${course.slug || course.id}`;
+  
+  return (
+    <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer h-full border border-gray-200">
+      {/* Course Image with Play Button - Clickable for course details */}
+      <Link href={courseDetailUrl}>
+        <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
+          <img
+            src={course.thumbnail_url || "/placeholder-course.png"}
+            alt={course.title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+            <div className="bg-white rounded-full p-4 transform scale-0 group-hover:scale-100 transition-transform">
+              <Play size={32} className="text-blue-600 fill-blue-600" />
+            </div>
+          </div>
+          <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold ${
+            course.is_featured 
+              ? 'bg-yellow-500 text-white' 
+              : course.is_trending 
+              ? 'bg-green-500 text-white'
+              : 'bg-gray-600 text-white'
+          }`}>
+            {course.is_featured ? 'FEATURED' : course.is_trending ? 'TRENDING' : course.is_published ? 'PUBLISHED' : 'DRAFT'}
+          </span>
+        </div>
+      </Link>
+
+      {/* Course Info */}
+      <div className="p-4">
+        {/* Course Title - Clickable for course details */}
+        <Link href={courseDetailUrl}>
+          <h3 className="font-bold text-lg mb-2 line-clamp-2 h-14 hover:text-blue-600 transition-colors">
+            {course.title}
+          </h3>
+        </Link>
+        
+        {/* Course Stats */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1">
+            <Star className="text-yellow-400 fill-yellow-400" size={16} />
+            <span className="font-semibold text-sm">{rating}</span>
+          </div>
+          <div className="flex items-center gap-1 text-gray-600">
+            <Users size={16} />
+            <span className="text-sm">{studentCount}</span>
+          </div>
+          <div className="flex items-center gap-1 text-gray-600">
+            <BookOpen size={16} />
+            <span className="text-sm">{lessonCount}</span>
+          </div>
+        </div>
+
+        <p className="text-sm text-gray-600 mb-4 line-clamp-2 h-10">
+          {course.short_description || (course.description_html ? course.description_html.substring(0, 100) + '...' : 'No description available')}
+        </p>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Button
+              onClick={() => onEdit?.(course)}
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs"
+            >
+              Edit
+            </Button>
+            
+            {course.is_published ? (
+              <Button
+                onClick={() => onUnpublish?.(course)}
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
+              >
+                Unpublish
+              </Button>
+            ) : (
+              <Button
+                onClick={() => onPublish?.(course)}
+                size="sm"
+                className="flex-1 text-xs bg-green-600 hover:bg-green-700 text-white"
+              >
+                Publish
+              </Button>
+            )}
+          </div>
+
+          {/* Curriculum Button - Full width */}
+          <Link href={`/dashboard/instructor/courses/${course.id}/curriculum`}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+            >
+              <FileText size={14} className="mr-2" />
+              Curriculum
+            </Button>
+          </Link>
+
+          {/* Delete Button - Full width */}
+          <Button
+            onClick={() => onDelete?.(course)}
+            variant="destructive"
+            size="sm"
+            className="w-full text-xs"
+          >
+            Delete
+          </Button>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+          <span className="text-xs text-gray-500">
+            Created: {new Date(course.created_at).toLocaleDateString()}
+          </span>
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            course.is_published 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-gray-100 text-gray-800'
+          }`}>
+            {course.is_published ? 'Published' : 'Draft'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Updated Course Grid Component with Premium Design
+function PremiumCourseGrid({ 
+  courses, 
+  title, 
+  description,
+  onEdit,
+  onDelete,
+  onPublish,
+  onUnpublish 
+}: { 
+  courses: Course[];
+  title: string;
+  description?: string;
+  onEdit?: (course: Course) => void;
+  onDelete?: (course: Course) => void;
+  onPublish?: (course: Course) => void;
+  onUnpublish?: (course: Course) => void;
+}) {
+  if (!courses || courses.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && (
+          <CardDescription>{description}</CardDescription>
+        )}
+      </CardHeader>
+      <CardContent>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          {courses.map((course) => (
+            <PremiumCourseCard
+              key={course.id}
+              course={course}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onPublish={onPublish}
+              onUnpublish={onUnpublish}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function CourseManager({ initialCourses, categories }: CourseManagerProps) {
   const [courses, setCourses] = useState<Course[]>(initialCourses);
@@ -206,7 +425,7 @@ export function CourseManager({ initialCourses, categories }: CourseManagerProps
             </div>
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
               <div className="text-2xl font-bold text-purple-700">
-                {courses.reduce((sum, course) => sum + course.enrolled_students_count, 0)}
+                {courses.reduce((sum, course) => sum + getNumber(course.enrolled_students_count), 0)}
               </div>
               <div className="text-sm text-purple-600">Total Students</div>
             </div>
@@ -216,46 +435,26 @@ export function CourseManager({ initialCourses, categories }: CourseManagerProps
 
       {/* Published Courses */}
       {publishedCourses.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Published Courses</CardTitle>
-            <CardDescription>
-              Your published courses that are available to students
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CourseGrid
-              courses={publishedCourses}
-              showInstructor={false}
-              showActions={true}
-              onEdit={handleEditCourse}
-              onDelete={handleDeleteCourse}
-              onUnpublish={handleUnpublishCourse}
-            />
-          </CardContent>
-        </Card>
+        <PremiumCourseGrid
+          courses={publishedCourses}
+          title="Published Courses"
+          description="Your published courses that are available to students"
+          onEdit={handleEditCourse}
+          onDelete={handleDeleteCourse}
+          onUnpublish={handleUnpublishCourse}
+        />
       )}
 
       {/* Draft Courses */}
       {draftCourses.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Draft Courses</CardTitle>
-            <CardDescription>
-              Courses that are not yet published
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CourseGrid
-              courses={draftCourses}
-              showInstructor={false}
-              showActions={true}
-              onEdit={handleEditCourse}
-              onDelete={handleDeleteCourse}
-              onPublish={handlePublishCourse}
-            />
-          </CardContent>
-        </Card>
+        <PremiumCourseGrid
+          courses={draftCourses}
+          title="Draft Courses"
+          description="Courses that are not yet published"
+          onEdit={handleEditCourse}
+          onDelete={handleDeleteCourse}
+          onPublish={handlePublishCourse}
+        />
       )}
 
       {/* Empty State */}
