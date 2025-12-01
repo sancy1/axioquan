@@ -319,7 +319,14 @@ import {
   updateCourse, 
   deleteCourse,
   publishCourse,
-  unpublishCourse
+  unpublishCourse,
+
+  enrollUserInCourse, 
+  getUserEnrollments, 
+  checkEnrollmentStatus, 
+  getEnrollmentProgress,
+  updateEnrollmentProgress 
+
 } from '@/lib/db/queries/courses';
 import { getCourseCurriculum } from '@/lib/db/queries/curriculum';
 import { requireAuth } from '@/lib/auth/utils';
@@ -612,6 +619,125 @@ export async function unpublishCourseAction(id: string): Promise<{
     return {
       success: false,
       message: 'Failed to unpublish course',
+      errors: [error.message || 'An unexpected error occurred']
+    };
+  }
+}
+
+
+
+/**
+ * Enroll in a course
+ */
+export async function enrollInCourse(courseId: string): Promise<{
+  success: boolean;
+  message: string;
+  enrollment?: any;
+  errors?: string[];
+}> {
+  try {
+    const session = await requireAuth();
+    
+    const result = await enrollUserInCourse(session.userId, courseId);
+    
+    if (result.success) {
+      return {
+        success: true,
+        message: 'Successfully enrolled in course',
+        enrollment: result.enrollment
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Failed to enroll in course',
+        errors: result.errors
+      };
+    }
+  } catch (error: any) {
+    console.error('❌ Error enrolling in course:', error);
+    return {
+      success: false,
+      message: 'Failed to enroll in course',
+      errors: [error.message || 'An unexpected error occurred']
+    };
+  }
+}
+
+/**
+ * Get user's course enrollments
+ */
+export async function getUserCourseEnrollments(): Promise<{
+  success: boolean;
+  enrollments?: any[];
+  errors?: string[];
+}> {
+  try {
+    const session = await requireAuth();
+    
+    const enrollments = await getUserEnrollments(session.userId);
+    
+    return {
+      success: true,
+      enrollments
+    };
+  } catch (error: any) {
+    console.error('❌ Error fetching user enrollments:', error);
+    return {
+      success: false,
+      errors: [error.message || 'An unexpected error occurred']
+    };
+  }
+}
+
+/**
+ * Check if user is enrolled in a course
+ */
+export async function checkUserEnrollment(courseId: string): Promise<{
+  success: boolean;
+  isEnrolled?: boolean;
+  enrollment?: any;
+  errors?: string[];
+}> {
+  try {
+    const session = await requireAuth();
+    
+    const enrollmentStatus = await checkEnrollmentStatus(session.userId, courseId);
+    
+    return {
+      success: true,
+      isEnrolled: enrollmentStatus.isEnrolled,
+      enrollment: enrollmentStatus
+    };
+  } catch (error: any) {
+    console.error('❌ Error checking user enrollment:', error);
+    return {
+      success: false,
+      errors: [error.message || 'An unexpected error occurred']
+    };
+  }
+}
+
+/**
+ * Get user's progress in a course
+ */
+export async function getUserCourseProgress(courseId: string): Promise<{
+  success: boolean;
+  progress?: any;
+  errors?: string[];
+}> {
+  try {
+    const session = await requireAuth();
+    
+    const progress = await getEnrollmentProgress(session.userId, courseId);
+    
+    return {
+      success: true,
+      progress
+    };
+  } catch (error: any) {
+    console.error('❌ Error fetching user progress:', error);
+    return {
+      success: false,
       errors: [error.message || 'An unexpected error occurred']
     };
   }

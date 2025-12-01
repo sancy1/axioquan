@@ -354,3 +354,65 @@ export interface UpdateCourseData {
   tag_ids?: string[];
   is_published?: boolean;
 }
+
+
+
+export interface CourseEnrollment {
+  id: string;
+  user_id: string;
+  course_id: string;
+  enrolled_at: Date;
+  enrolled_price_cents: number;
+  access_type: 'full' | 'trial' | 'preview' | 'audit';
+  status: 'active' | 'completed' | 'dropped' | 'suspended' | 'pending';
+  completed_at?: Date;
+  last_accessed_at: Date;
+  current_lesson_id?: string;
+  current_module_id?: string;
+  progress_percentage: number;
+  completed_lessons: number;
+  total_lessons: number;
+  total_time_spent: number;
+  average_quiz_score: number;
+  assignment_average: number;
+  overall_grade: number;
+}
+
+export interface UserProgress {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  course_id: string;
+  enrollment_id: string;
+  is_completed: boolean;
+  completed_at?: Date;
+  last_accessed_at: Date;
+  time_spent: number;
+  video_progress: number;
+  last_position: number;
+  quiz_score?: number;
+  assignment_score?: number;
+  completion_status: 'not_started' | 'in_progress' | 'completed';
+}
+
+export interface EnrollmentStatus {
+  isEnrolled: boolean;
+  enrollmentId?: string;
+  enrolledAt?: Date;
+  status?: string;
+  progressPercentage?: number;
+  completedLessons?: number; 
+  totalLessons?: number;     
+}
+
+export interface CourseProgress {
+  courseId: string;
+  courseTitle: string;
+  progressPercentage: number;
+  completedLessons: number;
+  totalLessons: number;
+  lastAccessedAt: Date;
+  currentLessonId?: string;
+  currentModuleId?: string;
+  timeSpent: number;
+}

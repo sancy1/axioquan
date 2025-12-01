@@ -3,6 +3,7 @@
 
 import { sql } from '../index';
 import { Course, CourseTag, CreateCourseData, UpdateCourseData } from '@/types/courses';
+import { CourseEnrollment, EnrollmentStatus, CourseProgress } from '@/types/courses';
 
 /**
  * Get all courses with filters
@@ -622,6 +623,214 @@ export async function unpublishCourse(id: string, instructorId: string): Promise
     return {
       success: false,
       message: 'Failed to unpublish course',
+      errors: [error.message || 'An unexpected error occurred']
+    };
+  }
+}
+
+
+
+/**
+ * Enroll user in a course
+ */
+export async function enrollUserInCourse(
+  userId: string, 
+  courseId: string, 
+  accessType: string = 'full'
+): Promise<{ success: boolean; enrollment?: CourseEnrollment; errors?: string[] }> {
+  try {
+    // Check if user is already enrolled
+    const existingEnrollment = await sql`
+      SELECT id FROM enrollments 
+      WHERE user_id = ${userId} AND course_id = ${courseId} AND status = 'active'
+      LIMIT 1
+    `;
+
+    if (existingEnrollment.length > 0) {
+      return {
+        success: false,
+        errors: ['User is already enrolled in this course']
+      };
+    }
+
+    // Get course details for enrollment
+    const course = await sql`
+      SELECT price_cents, total_lessons FROM courses WHERE id = ${courseId} LIMIT 1
+    `;
+
+    if (course.length === 0) {
+      return {
+        success: false,
+        errors: ['Course not found']
+      };
+    }
+
+    const enrollment = await sql`
+      INSERT INTO enrollments (
+        user_id,
+        course_id,
+        enrolled_price_cents,
+        access_type,
+        status,
+        total_lessons,
+        enrolled_at,
+        last_accessed_at
+      ) VALUES (
+        ${userId},
+        ${courseId},
+        ${course[0].price_cents},
+        ${accessType},
+        'active',
+        ${course[0].total_lessons || 0},
+        NOW(),
+        NOW()
+      )
+      RETURNING *
+    `;
+
+    return {
+      success: true,
+      enrollment: enrollment[0] as CourseEnrollment
+    };
+  } catch (error: any) {
+    console.error('❌ Error enrolling user in course:', error);
+    return {
+      success: false,
+      errors: [error.message || 'An unexpected error occurred']
+    };
+  }
+}
+
+/**
+ * Get user's course enrollments
+ */
+export async function getUserEnrollments(userId: string): Promise<CourseEnrollment[]> {
+  try {
+    const enrollments = await sql`
+      SELECT e.*, c.title as course_title, c.slug as course_slug
+      FROM enrollments e
+      JOIN courses c ON e.course_id = c.id
+      WHERE e.user_id = ${userId} AND e.status = 'active'
+      ORDER BY e.last_accessed_at DESC
+    `;
+
+    return enrollments as CourseEnrollment[];
+  } catch (error: any) {
+    console.error('❌ Error fetching user enrollments:', error);
+    return [];
+  }
+}
+
+/**
+ * Check if user is enrolled in a course
+ */
+export async function checkEnrollmentStatus(
+  userId: string, 
+  courseId: string
+): Promise<EnrollmentStatus> {
+  try {
+    const enrollment = await sql`
+      SELECT id, status, enrolled_at, progress_percentage
+      FROM enrollments 
+      WHERE user_id = ${userId} AND course_id = ${courseId} AND status = 'active'
+      LIMIT 1
+    `;
+
+    if (enrollment.length === 0) {
+      return { isEnrolled: false };
+    }
+
+    return {
+      isEnrolled: true,
+      enrollmentId: enrollment[0].id,
+      enrolledAt: enrollment[0].enrolled_at,
+      status: enrollment[0].status,
+      progressPercentage: enrollment[0].progress_percentage
+    };
+  } catch (error: any) {
+    console.error('❌ Error checking enrollment status:', error);
+    return { isEnrolled: false };
+  }
+}
+
+/**
+ * Get enrollment progress for a user in a course
+ */
+export async function getEnrollmentProgress(
+  userId: string, 
+  courseId: string
+): Promise<CourseProgress | null> {
+  try {
+    const progress = await sql`
+      SELECT 
+        e.course_id,
+        c.title as course_title,
+        e.progress_percentage,
+        e.completed_lessons,
+        e.total_lessons,
+        e.last_accessed_at,
+        e.current_lesson_id,
+        e.current_module_id,
+        e.total_time_spent
+      FROM enrollments e
+      JOIN courses c ON e.course_id = c.id
+      WHERE e.user_id = ${userId} AND e.course_id = ${courseId} AND e.status = 'active'
+      LIMIT 1
+    `;
+
+    if (progress.length === 0) {
+      return null;
+    }
+
+    return {
+      courseId: progress[0].course_id,
+      courseTitle: progress[0].course_title,
+      progressPercentage: progress[0].progress_percentage,
+      completedLessons: progress[0].completed_lessons,
+      totalLessons: progress[0].total_lessons,
+      lastAccessedAt: progress[0].last_accessed_at,
+      currentLessonId: progress[0].current_lesson_id,
+      currentModuleId: progress[0].current_module_id,
+      timeSpent: progress[0].total_time_spent
+    };
+  } catch (error: any) {
+    console.error('❌ Error fetching enrollment progress:', error);
+    return null;
+  }
+}
+
+/**
+ * Update enrollment progress
+ */
+export async function updateEnrollmentProgress(
+  enrollmentId: string,
+  progressData: {
+    progressPercentage?: number;
+    completedLessons?: number;
+    currentLessonId?: string;
+    currentModuleId?: string;
+    timeSpent?: number;
+  }
+): Promise<{ success: boolean; errors?: string[] }> {
+  try {
+    await sql`
+      UPDATE enrollments 
+      SET 
+        progress_percentage = COALESCE(${progressData.progressPercentage}, progress_percentage),
+        completed_lessons = COALESCE(${progressData.completedLessons}, completed_lessons),
+        current_lesson_id = COALESCE(${progressData.currentLessonId}, current_lesson_id),
+        current_module_id = COALESCE(${progressData.currentModuleId}, current_module_id),
+        total_time_spent = COALESCE(${progressData.timeSpent}, total_time_spent),
+        last_accessed_at = NOW(),
+        last_activity_at = NOW()
+      WHERE id = ${enrollmentId}
+    `;
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('❌ Error updating enrollment progress:', error);
+    return {
+      success: false,
       errors: [error.message || 'An unexpected error occurred']
     };
   }
