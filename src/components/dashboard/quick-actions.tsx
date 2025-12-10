@@ -188,7 +188,7 @@
 
 
 
-
+// /components/dashboard/quick-actions.tsx
 
 'use client'
 
@@ -266,6 +266,14 @@ export default function QuickActions({ roleSpecificData, userRole }: QuickAction
             >
               <div className="font-medium text-gray-900">Instructor Analytics</div>
               <div className="text-sm text-gray-600">View course performance and student progress</div>
+            </Link>
+
+            <Link 
+              href="/dashboard/instructor/quizzes" 
+              className="block w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="font-medium text-gray-900">Manage Quizzes</div>
+              <div className="text-sm text-gray-600">Create and manage assessments</div>
             </Link>
 
             {roleSpecificData.instructorCourses > 0 && (

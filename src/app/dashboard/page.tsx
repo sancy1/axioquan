@@ -1,5 +1,6 @@
 
 // // /src/app/dashboard/page.tsx
+// Main dashboard page - shows role-based content
 
 import { withSessionRefresh } from '@/lib/auth/utils';
 import { checkAuthStatus } from '@/lib/auth/actions';

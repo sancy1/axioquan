@@ -1,6 +1,7 @@
 
 
 // /lib/db/queries/roles.ts
+// # Database queries for role data
 
 import { sql } from '../index';
 

@@ -1,4 +1,6 @@
+
 // /types/auth.ts
+// # Authentication type definitions
 
 export interface LoginFormData {
   email: string;

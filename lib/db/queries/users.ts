@@ -1,5 +1,6 @@
 
 // // /lib/db/queries/users.ts - FIXED VERSION
+// Database queries for user data
 
 import { sql } from '../index';
 

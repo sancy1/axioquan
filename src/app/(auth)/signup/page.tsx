@@ -1,5 +1,6 @@
 
 // // /src/app/(auth)/signup/page.tsx
+// # User registration page
 
 import SignUpForm from '@/components/auth/signup-form';
 import { Header } from '@/components/layout/header';

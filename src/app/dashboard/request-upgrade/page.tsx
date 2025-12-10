@@ -1,7 +1,7 @@
 
 
 // /src/app/dashboard/request-upgrade/page.tsx
-
+// # Page for requesting instructor role
 
 import { withSessionRefresh } from '@/lib/auth/utils';
 import { getAvailableRolesForUpgrade, getUserRoleRequests } from '@/lib/auth/role-actions';

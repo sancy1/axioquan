@@ -1,4 +1,6 @@
+
 // /app/dashboard/instructor/create/page.tsx
+// # Course creation page - entry point
 
 import { withSessionRefresh } from '@/lib/auth/utils';
 import { requireRole } from '@/lib/auth/utils';

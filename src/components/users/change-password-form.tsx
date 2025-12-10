@@ -1,4 +1,6 @@
+
 // /src/components/users/change-password-form.tsx
+// # Password change functionality
 
 'use client';
 

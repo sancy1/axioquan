@@ -1,3 +1,4 @@
+
 // /components/courses/quiz-page.tsx
 
 'use client'

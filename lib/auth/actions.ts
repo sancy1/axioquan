@@ -1,5 +1,6 @@
 
 // /lib/auth/actions.ts
+//  # User authentication actions (login/signup)
 
 'use server';
 

@@ -1,5 +1,6 @@
 
 // /app/api/courses/route.ts
+// # courses route
 
 import { NextRequest } from 'next/server';
 import { getCoursesAction, createCourseAction } from '@/lib/courses/actions';

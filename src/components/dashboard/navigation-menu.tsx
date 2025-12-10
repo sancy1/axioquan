@@ -102,6 +102,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { FileQuestion } from 'lucide-react';
 import { 
   BookOpen, 
   LayoutDashboard, 
@@ -123,6 +124,11 @@ const instructorItems = [
     title: 'My Courses',
     href: '/dashboard/instructor/courses',
     icon: BookOpen
+  },
+  {
+    title: 'Quizzes',
+    href: '/dashboard/instructor/quizzes',
+    icon: FileQuestion  
   },
   {
     title: 'Create Course',

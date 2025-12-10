@@ -1,5 +1,6 @@
 
 // /lib/auth/role-actions.ts
+// # Role management and permissions
 
 'use server';
 

@@ -1,5 +1,6 @@
 
 // // /src/components/auth/admin-signup-form.tsx
+// # Signup form component
 
 'use client';
 
