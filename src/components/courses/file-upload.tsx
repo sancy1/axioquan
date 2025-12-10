@@ -2380,42 +2380,41 @@ function FileUploadComponent({
           )}
 
           {/* Video Preview - FIXED: FULL WIDTH, NO BLACK BARS */}
-          // In your current file-upload.tsx, find the video preview section and replace it with:
-
-{/* Video Preview - SHORTER HEIGHT */}
-{type === 'video' && (
-  <div className="space-y-1.5">
-    {isYouTubeUrl(previewUrl) ? (
-      <div className="bg-black rounded p-2 flex flex-col items-center">
-        <div className="text-white text-xs mb-1">YouTube Video</div>
-        <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-          <Youtube className="h-4 w-4 text-white" />
-        </div>
-        {youtubeThumbnail && (
-          <img
-            src={youtubeThumbnail}
-            alt="YouTube thumbnail"
-            className="mt-1.5 max-w-full h-14 object-cover rounded"
-          />
-        )}
-      </div>
-    ) : (
-      <>
-        {/* SHORTER VIDEO PREVIEW */}
-        <div className="w-full" style={{ height: '160px' }}>
-          <video
-            src={previewUrl}
-            controls
-            className="w-full h-full rounded bg-black"
-          />
-        </div>
-        <p className="text-xs text-muted-foreground break-all line-clamp-1">
-          {previewUrl}
-        </p>
-      </>
-    )}
-  </div>
-)}
+      
+            {/* Video Preview - SHORTER HEIGHT */}
+            {type === 'video' && (
+              <div className="space-y-1.5">
+                {isYouTubeUrl(previewUrl) ? (
+                  <div className="bg-black rounded p-2 flex flex-col items-center">
+                    <div className="text-white text-xs mb-1">YouTube Video</div>
+                    <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                      <Youtube className="h-4 w-4 text-white" />
+                    </div>
+                    {youtubeThumbnail && (
+                      <img
+                        src={youtubeThumbnail}
+                        alt="YouTube thumbnail"
+                        className="mt-1.5 max-w-full h-14 object-cover rounded"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {/* SHORTER VIDEO PREVIEW */}
+                    <div className="w-full" style={{ height: '160px' }}>
+                      <video
+                        src={previewUrl}
+                        controls
+                        className="w-full h-full rounded bg-black"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground break-all line-clamp-1">
+                      {previewUrl}
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
 
 
           {/* Document Preview */}
