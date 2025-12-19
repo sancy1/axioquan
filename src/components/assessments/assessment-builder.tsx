@@ -114,151 +114,271 @@ export function AssessmentBuilder({
   };
 
   
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // In /src/components/assessments/assessment-builder.tsx
+  // Update the handleSubmit function around line 198-304
+
+// In /src/components/assessments/assessment-builder.tsx
+// Update the handleSubmit function:
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!formData.title.trim()) {
+    toast.error('Error', { description: 'Assessment title is required' });
+    return;
+  }
+
+  if (!selectedCourseId) {
+    toast.error('Error', { description: 'Please select a course' });
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const assessmentData: CreateAssessmentData = {
+      course_id: selectedCourseId,
+      title: formData.title.trim(),
+      description: formData.description.trim() || undefined,
+      instructions: formData.instructions.trim() || undefined,
+      type: formData.type as any,
+      difficulty: formData.difficulty,
+      passing_score: Number(formData.passing_score),
+      max_attempts: Number(formData.max_attempts),
+      time_limit: formData.time_limit ? Number(formData.time_limit) : undefined,
+      shuffle_questions: formData.shuffle_questions,
+      show_correct_answers: formData.show_correct_answers,
+      show_results_immediately: formData.show_results_immediately,
+      require_passing: formData.require_passing,
+      points_per_question: Number(formData.points_per_question),
+      lesson_id: formData.lesson_id && formData.lesson_id !== 'none' ? formData.lesson_id : undefined,
+      available_from: formData.available_from ? new Date(formData.available_from) : undefined,
+      available_until: formData.available_until ? new Date(formData.available_until) : undefined,
+      duration_minutes: formData.duration_minutes ? Number(formData.duration_minutes) : undefined
+    };
+
+    const url = assessment ? `/api/assessments/${assessment.id}` : '/api/assessments';
+    const method = assessment ? 'PUT' : 'POST';
+
+    console.log('Sending request to:', url);
+    console.log('Method:', method);
+    console.log('Data:', assessmentData);
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(assessmentData)
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
     
-    if (!formData.title.trim()) {
-      toast.error('Error', { description: 'Assessment title is required' });
-      return;
-    }
-
-    if (!selectedCourseId) {
-      toast.error('Error', { description: 'Please select a course' });
-      return;
-    }
-
+    // Get response text first for debugging
+    const responseText = await response.text();
+    console.log('Raw response text:', responseText);
+    
+    let data;
     try {
-      setLoading(true);
-
-      const assessmentData: CreateAssessmentData = {
-        course_id: selectedCourseId,
-        title: formData.title.trim(),
-        description: formData.description.trim() || undefined,
-        instructions: formData.instructions.trim() || undefined,
-        type: formData.type as any,
-        difficulty: formData.difficulty,
-        passing_score: Number(formData.passing_score),
-        max_attempts: Number(formData.max_attempts),
-        time_limit: formData.time_limit ? Number(formData.time_limit) : undefined,
-        shuffle_questions: formData.shuffle_questions,
-        show_correct_answers: formData.show_correct_answers,
-        show_results_immediately: formData.show_results_immediately,
-        require_passing: formData.require_passing,
-        points_per_question: Number(formData.points_per_question),
-        lesson_id: formData.lesson_id && formData.lesson_id !== 'none' ? formData.lesson_id : undefined,
-        available_from: formData.available_from ? new Date(formData.available_from) : undefined,
-        available_until: formData.available_until ? new Date(formData.available_until) : undefined,
-        duration_minutes: formData.duration_minutes ? Number(formData.duration_minutes) : undefined
-      };
-
-      const url = assessment ? `/api/assessments/${assessment.id}` : '/api/assessments';
-      const method = assessment ? 'PUT' : 'POST';
-
-      console.log('Sending request to:', url);
-      console.log('Method:', method);
-      console.log('Data:', assessmentData);
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(assessmentData)
-      });
-
-      console.log('Response status:', response.status);
+      data = JSON.parse(responseText);
+      console.log('Parsed response data:', data);
+    } catch (parseError) {
+      console.error('Failed to parse JSON:', parseError);
+      console.log('Response text was:', responseText);
       
-      // Check response status before parsing JSON
-      if (response.status === 204) {
-        // Handle 204 No Content response
-        console.log('Received 204 No Content response');
+      if (response.ok) {
+        // If response is OK but not JSON, assume success
         toast.success('Success', {
           description: `Assessment ${assessment ? 'updated' : 'created'} successfully`
         });
         
-        if (onSave && assessment) {
-          // If we're editing, refetch the updated assessment
-          try {
-            const refetchedResponse = await fetch(`/api/assessments/${assessment.id}`);
-            if (refetchedResponse.ok) {
-              const refetchedData = await refetchedResponse.json();
-              if (refetchedData.assessment) {
-                onSave(refetchedData.assessment);
-                // Wait a moment then redirect
-                setTimeout(() => {
-                  router.push('/dashboard/instructor/quizzes');
-                  router.refresh();
-                }, 1000);
-              } else {
-                router.push('/dashboard/instructor/quizzes');
-                router.refresh();
-              }
-            } else {
-              // If refetch fails, still redirect
-              router.push('/dashboard/instructor/quizzes');
-              router.refresh();
-            }
-          } catch (refetchError) {
-            console.error('Error refetching assessment:', refetchError);
-            router.push('/dashboard/instructor/quizzes');
-            router.refresh();
-          }
-        } else {
-          // For create mode, just redirect
+        // Redirect to quizzes page
+        setTimeout(() => {
           router.push('/dashboard/instructor/quizzes');
           router.refresh();
-        }
+        }, 1000);
+        return;
+      } else {
+        toast.error('Error', { 
+          description: 'Server returned invalid response format'
+        });
         return;
       }
-
-      // Parse JSON for normal responses
-      try {
-        const data = await response.json();
-        console.log('Response data:', data);
-        
-        if (response.ok && data.success) {
-          toast.success('Success', {
-            description: data.message || `Assessment ${assessment ? 'updated' : 'created'} successfully`
-          });
-
-          if (onSave && data.assessment) {
-            onSave(data.assessment);
-            // Wait a moment then redirect
-            setTimeout(() => {
-              router.push('/dashboard/instructor/quizzes');
-              router.refresh();
-            }, 1000);
-          } else {
-            // Redirect immediately if no onSave callback
-            router.push('/dashboard/instructor/quizzes');
-            router.refresh();
-          }
-        } else {
-          const errorMessage = data.error || data.details?.[0]?.message || 'Failed to save assessment';
-          toast.error('Error', { description: errorMessage });
-        }
-      } catch (jsonError) {
-        console.error('JSON parsing error:', jsonError);
-        // Try to get response as text for debugging
-        try {
-          const text = await response.text();
-          console.error('Response text:', text);
-          toast.error('Error', { 
-            description: `Server returned invalid response (Status: ${response.status})` 
-          });
-        } catch (textError) {
-          toast.error('Error', { 
-            description: `Server error (Status: ${response.status})` 
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Network error:', error);
-      toast.error('Error', { description: 'Network error. Please try again.' });
-    } finally {
-      setLoading(false);
     }
-  };
+    
+    // Check if response is successful (200-299 status code)
+    if (response.ok) {
+      // SUCCESS: Show success toast
+      toast.success('Success', {
+        description: data.message || data.assessment?.title || `Assessment ${assessment ? 'updated' : 'created'} successfully`
+      });
+
+      // Redirect to quizzes page after a short delay
+      setTimeout(() => {
+        router.push('/dashboard/instructor/quizzes');
+        router.refresh();
+      }, 1000);
+      
+    } else {
+      // ERROR: Show error toast with server message
+      const errorMessage = data.error || data.message || data.details?.[0]?.message || 'Failed to save assessment';
+      console.error('Server error details:', data);
+      toast.error('Error', { description: errorMessage });
+    }
+  } catch (error) {
+    console.error('Network error:', error);
+    toast.error('Error', { description: 'Network error. Please try again.' });
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+    
+  //   if (!formData.title.trim()) {
+  //     toast.error('Error', { description: 'Assessment title is required' });
+  //     return;
+  //   }
+
+  //   if (!selectedCourseId) {
+  //     toast.error('Error', { description: 'Please select a course' });
+  //     return;
+  //   }
+
+  //   try {
+  //     setLoading(true);
+
+  //     const assessmentData: CreateAssessmentData = {
+  //       course_id: selectedCourseId,
+  //       title: formData.title.trim(),
+  //       description: formData.description.trim() || undefined,
+  //       instructions: formData.instructions.trim() || undefined,
+  //       type: formData.type as any,
+  //       difficulty: formData.difficulty,
+  //       passing_score: Number(formData.passing_score),
+  //       max_attempts: Number(formData.max_attempts),
+  //       time_limit: formData.time_limit ? Number(formData.time_limit) : undefined,
+  //       shuffle_questions: formData.shuffle_questions,
+  //       show_correct_answers: formData.show_correct_answers,
+  //       show_results_immediately: formData.show_results_immediately,
+  //       require_passing: formData.require_passing,
+  //       points_per_question: Number(formData.points_per_question),
+  //       lesson_id: formData.lesson_id && formData.lesson_id !== 'none' ? formData.lesson_id : undefined,
+  //       available_from: formData.available_from ? new Date(formData.available_from) : undefined,
+  //       available_until: formData.available_until ? new Date(formData.available_until) : undefined,
+  //       duration_minutes: formData.duration_minutes ? Number(formData.duration_minutes) : undefined
+  //     };
+
+  //     const url = assessment ? `/api/assessments/${assessment.id}` : '/api/assessments';
+  //     const method = assessment ? 'PUT' : 'POST';
+
+  //     console.log('Sending request to:', url);
+  //     console.log('Method:', method);
+  //     console.log('Data:', assessmentData);
+
+  //     const response = await fetch(url, {
+  //       method,
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify(assessmentData)
+  //     });
+
+  //     console.log('Response status:', response.status);
+      
+  //     // Check response status before parsing JSON
+  //     if (response.status === 204) {
+  //       // Handle 204 No Content response
+  //       console.log('Received 204 No Content response');
+  //       toast.success('Success', {
+  //         description: `Assessment ${assessment ? 'updated' : 'created'} successfully`
+  //       });
+        
+  //       if (onSave && assessment) {
+  //         // If we're editing, refetch the updated assessment
+  //         try {
+  //           const refetchedResponse = await fetch(`/api/assessments/${assessment.id}`);
+  //           if (refetchedResponse.ok) {
+  //             const refetchedData = await refetchedResponse.json();
+  //             if (refetchedData.assessment) {
+  //               onSave(refetchedData.assessment);
+  //               // Wait a moment then redirect
+  //               setTimeout(() => {
+  //                 router.push('/dashboard/instructor/quizzes');
+  //                 router.refresh();
+  //               }, 1000);
+  //             } else {
+  //               router.push('/dashboard/instructor/quizzes');
+  //               router.refresh();
+  //             }
+  //           } else {
+  //             // If refetch fails, still redirect
+  //             router.push('/dashboard/instructor/quizzes');
+  //             router.refresh();
+  //           }
+  //         } catch (refetchError) {
+  //           console.error('Error refetching assessment:', refetchError);
+  //           router.push('/dashboard/instructor/quizzes');
+  //           router.refresh();
+  //         }
+  //       } else {
+  //         // For create mode, just redirect
+  //         router.push('/dashboard/instructor/quizzes');
+  //         router.refresh();
+  //       }
+  //       return;
+  //     }
+
+  //     // Parse JSON for normal responses
+  //     try {
+  //       const data = await response.json();
+  //       console.log('Response data:', data);
+        
+  //       if (response.ok && data.success) {
+  //         toast.success('Success', {
+  //           description: data.message || `Assessment ${assessment ? 'updated' : 'created'} successfully`
+  //         });
+
+  //         if (onSave && data.assessment) {
+  //           onSave(data.assessment);
+  //           // Wait a moment then redirect
+  //           setTimeout(() => {
+  //             router.push('/dashboard/instructor/quizzes');
+  //             router.refresh();
+  //           }, 1000);
+  //         } else {
+  //           // Redirect immediately if no onSave callback
+  //           router.push('/dashboard/instructor/quizzes');
+  //           router.refresh();
+  //         }
+  //       } else {
+  //         const errorMessage = data.error || data.details?.[0]?.message || 'Failed to save assessment';
+  //         toast.error('Error', { description: errorMessage });
+  //       }
+  //     } catch (jsonError) {
+  //       console.error('JSON parsing error:', jsonError);
+  //       // Try to get response as text for debugging
+  //       try {
+  //         const text = await response.text();
+  //         console.error('Response text:', text);
+  //         toast.error('Error', { 
+  //           description: `Server returned invalid response (Status: ${response.status})` 
+  //         });
+  //       } catch (textError) {
+  //         toast.error('Error', { 
+  //           description: `Server error (Status: ${response.status})` 
+  //         });
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Network error:', error);
+  //     toast.error('Error', { description: 'Network error. Please try again.' });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <Card>
